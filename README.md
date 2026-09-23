@@ -14,12 +14,12 @@ that source file. The source must therefore contain enough information to descri
 The central idea in this project is a self-referential format string:
 
 ```text
-source = "the whole program, with placeholders — including this string"
+source = "the whole program, with placeholders - including this string"
 print(source, newline, source, quote, tab, ...)
 ```
 
 The placeholders solve the circular problem: the program stores its structure once, then
-inserts newline, quote and tab characters—and the format string itself—at runtime.
+inserts newline, quote and tab characters, plus the format string itself, at runtime.
 
 ## The project
 
@@ -34,7 +34,7 @@ and `ASM/`. The Assembly implementation targets Linux x86-64 and uses NASM.
 
 ## How the solutions work
 
-### Colleen — print yourself
+### Colleen - print yourself
 
 `Colleen` keeps its source in a format string and passes that string back into `printf`.
 The extra C function and Assembly routine perform the required output while satisfying
@@ -48,7 +48,7 @@ diff Colleen.s Colleen_output       # Run inside ASM/
 
 An empty `diff` result means the output is identical to the source.
 
-### Grace — write a child
+### Grace - write a child
 
 `Grace` applies the same self-formatting technique to a file instead of standard output.
 In C, three `#define` macros provide the filename, source template and program body. In
@@ -60,7 +60,28 @@ diff Grace.c Grace_kid.c            # C version
 diff Grace.s Grace_kid.s            # Assembly version
 ```
 
-### Sully — reproduce recursively
+#### Inspect the expanded Grace macros
+
+The `-E` option stops after preprocessing, so it lets you inspect what the macros become
+without assembling, compiling or running the result. For C, `-P` also removes preprocessor
+line markers to make the output easier to read:
+
+```sh
+cd C
+cc -E -P Grace.c > /tmp/grace_c_expanded.c
+tail -n 1 /tmp/grace_c_expanded.c
+
+cd ../ASM
+nasm -E Grace.s > /tmp/grace_asm_expanded.s
+less /tmp/grace_asm_expanded.s
+```
+
+The last C line shows `GRACE` expanded into a concrete `int main(void)` body, with
+`FILE_NAME` and `String` substituted. The NASM output similarly shows the instructions
+produced by the `GRACE` macro invocation. These commands confirm that the macros generate
+the program rather than hiding a separately written entry point.
+
+### Sully - reproduce recursively
 
 `Sully` writes a numbered source file, compiles it, and runs the resulting child. Each
 source embeds the current counter, so neighbouring generations differ only by that number.
